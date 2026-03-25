@@ -1,0 +1,91 @@
+name: ci
+
+on:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [22]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Resolve environment
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "ENVIRONMENT=prod" >> "$GITHUB_ENV"
+          else
+            echo "ENVIRONMENT=dev" >> "$GITHUB_ENV"
+          fi
+
+      - name: Notify install started
+        run: |
+          MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=install | status=STARTED | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        id: install_step
+        run: pnpm install
+
+      - name: Notify install finished
+        if: always()
+        run: |
+          STATUS="SUCCESS"
+          if [ "${{ steps.install_step.outcome }}" != "success" ]; then STATUS="FAILED"; fi
+          MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=install | status=${STATUS} | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+
+      - name: Notify lint started
+        if: ${{ steps.install_step.outcome == 'success' }}
+        run: |
+          MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=lint | status=STARTED | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+
+      - name: Lint
+        id: lint_step
+        if: ${{ steps.install_step.outcome == 'success' }}
+        run: pnpm run lint
+
+      - name: Notify lint finished
+        if: ${{ steps.install_step.outcome == 'success' && always() }}
+        run: |
+          STATUS="SUCCESS"
+          if [ "${{ steps.lint_step.outcome }}" != "success" ]; then STATUS="FAILED"; fi
+          MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=lint | status=${STATUS} | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+
+      - name: Notify typecheck started
+        if: ${{ steps.lint_step.outcome == 'success' }}
+        run: |
+          MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=typecheck | status=STARTED | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+
+      - name: Typecheck
+        id: typecheck_step
+        if: ${{ steps.lint_step.outcome == 'success' }}
+        run: pnpm run typecheck
+
+      - name: Notify typecheck finished
+        if: ${{ steps.lint_step.outcome == 'success' && always() }}
+        run: |
+          STATUS="SUCCESS"
+          if [ "${{ steps.typecheck_step.outcome }}" != "success" ]; then STATUS="FAILED"; fi
+          MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=typecheck | status=${STATUS} | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null

@@ -1,0 +1,32 @@
+services:
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/nikbulygin/adm_frontend}:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      APP_MODE: ${APP_MODE:-DEV}
+      HOST: 0.0.0.0
+      PORT: ${FRONTEND_PORT:-3000}
+      FRONTEND_PORT: ${FRONTEND_PORT:-3000}
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
+      GATEWAY_INTERNAL_BASE: ${GATEWAY_INTERNAL_BASE:-http://gateway}
+      NUXT_PUBLIC_AUTH_API_BASE: ${NUXT_PUBLIC_AUTH_API_BASE:-}
+      NUXT_PUBLIC_MARKETPLACE_API_BASE: ${NUXT_PUBLIC_MARKETPLACE_API_BASE:-/api/marketplace}
+    volumes:
+      - ./:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_nuxt:/app/.nuxt
+      - frontend_output:/app/.output
+    entrypoint: ["/bin/sh", "/app/docker/entrypoint.sh"]
+    depends_on:
+      - backend
+      - marketplace-backend
+
+volumes:
+  frontend_node_modules:
+  frontend_nuxt:
+  frontend_output:
