@@ -29,7 +29,7 @@ jobs:
       - name: Notify install started
         run: |
           MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=install | status=STARTED | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null || true
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -50,13 +50,13 @@ jobs:
           STATUS="SUCCESS"
           if [ "${{ steps.install_step.outcome }}" != "success" ]; then STATUS="FAILED"; fi
           MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=install | status=${STATUS} | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null || true
 
       - name: Notify lint started
         if: ${{ steps.install_step.outcome == 'success' }}
         run: |
           MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=lint | status=STARTED | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null || true
 
       - name: Lint
         id: lint_step
@@ -69,13 +69,13 @@ jobs:
           STATUS="SUCCESS"
           if [ "${{ steps.lint_step.outcome }}" != "success" ]; then STATUS="FAILED"; fi
           MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=lint | status=${STATUS} | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null || true
 
       - name: Notify typecheck started
         if: ${{ steps.lint_step.outcome == 'success' }}
         run: |
           MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=typecheck | status=STARTED | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null || true
 
       - name: Typecheck
         id: typecheck_step
@@ -88,4 +88,4 @@ jobs:
           STATUS="SUCCESS"
           if [ "${{ steps.typecheck_step.outcome }}" != "success" ]; then STATUS="FAILED"; fi
           MSG="project=frontend | branch=${GITHUB_REF_NAME} | env=${ENVIRONMENT} | stage=typecheck | status=${STATUS} | pipeline=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TG_GROUP_ID }}" -d text="${MSG}" >/dev/null || true

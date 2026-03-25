@@ -8,13 +8,13 @@ variables:
 
 .notify_start: &notify_start |
   MSG="project=${PROJECT_NAME} | branch=${CI_COMMIT_REF_NAME} | env=${ENVIRONMENT} | stage=${CI_JOB_STAGE} | status=STARTED | pipeline=${CI_PIPELINE_URL}"
-  curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" -d chat_id="${TG_GROUP_ID}" -d text="${MSG}" >/dev/null
+  curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" -d chat_id="${TG_GROUP_ID}" -d text="${MSG}" >/dev/null || true
 
 .notify_end: &notify_end |
   STATUS="SUCCESS"
   if [ "${CI_JOB_STATUS}" != "success" ]; then STATUS="FAILED"; fi
   MSG="project=${PROJECT_NAME} | branch=${CI_COMMIT_REF_NAME} | env=${ENVIRONMENT} | stage=${CI_JOB_STAGE} | status=${STATUS} | pipeline=${CI_PIPELINE_URL}"
-  curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" -d chat_id="${TG_GROUP_ID}" -d text="${MSG}" >/dev/null
+  curl -sS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" -d chat_id="${TG_GROUP_ID}" -d text="${MSG}" >/dev/null || true
 
 .prepare_env: &prepare_env |
   if [ "$CI_COMMIT_REF_NAME" = "main" ]; then export ENVIRONMENT=prod; else export ENVIRONMENT=dev; fi
